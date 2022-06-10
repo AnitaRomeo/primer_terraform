@@ -1,11 +1,64 @@
-# parms file for azure clou
-
-###
-variable "http_vm_name" {
-  type    = string
-  ##default = "http-vm"
+# parms file for azure cloud
+variable "array_de_vm" {
+  description = "listado de maquinas en array"
 }
-variable "BBDD_vm_name" {
-  type    = string
-  ##default = "BBDD-vm"
+
+variable "tenant" {
+  type = string
+  
+}
+
+variable "subscription" {
+  type = string
+  
+}
+
+variable "client" {
+  type = string
+  
+}
+
+variable "client_pass" {
+  type = string
+  
+}
+
+variable "network_name" {
+  type = string
+  
+}
+
+variable "network_address" {
+  type = string
+  
+}
+
+variable "subnet_name" {
+  type = string
+  
+}
+
+variable "subnet_address" {
+  type = string
+  
+}
+
+variable "resource_name" {
+  type = string
+  
+}
+
+variable "resource_location" {
+  type = string
+  
+}
+
+variable "ssh_key" {
+  type = string
+  
+}
+
+variable "tfstate" {
+  type = string
+  
 }

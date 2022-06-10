@@ -1,5 +1,6 @@
 resource "azurerm_public_ip" "http" {
-  name                = "frontal-ip"
+  for_each = var.array_de_vm
+  name                = "${each.key}-ip"
   location            = azurerm_resource_group.ciber-terraform.location
   resource_group_name = azurerm_resource_group.ciber-terraform.name
   allocation_method   = "Static"
@@ -10,23 +11,26 @@ resource "azurerm_public_ip" "http" {
 }
 
 resource "azurerm_network_interface" "http" {
-  name                = "frontal-nic"
+  for_each = var.array_de_vm
+  name                = "${each.key}-nic"
   location            = azurerm_resource_group.ciber-terraform.location
   resource_group_name = azurerm_resource_group.ciber-terraform.name
 
   ip_configuration {
-    name                          = "terraformconfig1"
+    name                          = "terraform${each.key}"
     subnet_id                     = azurerm_subnet.http.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.http.id
+    public_ip_address_id          = azurerm_public_ip.http["${each.key}"].id
   }
 }
 
 resource "azurerm_virtual_machine" "http" {
-  name                  = var.http_vm_name
+  for_each = var.array_de_vm
+  #name                  = var.http_vm_name
+  name                  = "${each.key}"
   location              = azurerm_resource_group.ciber-terraform.location
   resource_group_name   = azurerm_resource_group.ciber-terraform.name
-  network_interface_ids = [azurerm_network_interface.http.id]
+  network_interface_ids = [azurerm_network_interface.http["${each.key}"].id]
   vm_size               = "Standard_DS1_v2"
 
   delete_os_disk_on_termination    = true
@@ -34,19 +38,19 @@ resource "azurerm_virtual_machine" "http" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    offer = "0001-com-ubuntu-server-focal"
+    sku = "20_04-lts"
     version   = "latest"
   }
 
   storage_os_disk {
-    name              = "http-osdisk1"
+    name              = "${each.key}-osdisk1"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name  = "Frontal"
+    computer_name  = "${each.key}"
     admin_username = "ubuntu"
     admin_password = "DockerDocker@1234"
     ##custom_data    = file("scripts/first-boot.sh")
@@ -55,14 +59,16 @@ resource "azurerm_virtual_machine" "http" {
   os_profile_linux_config {
     disable_password_authentication = false
     ssh_keys {
-        key_data = "${file("files/ssh-id.pub")}"
+        #key_data = "${file("files/ssh-id.pub")}"
+        key_data = "${var.ssh_key}"
         path = "/home/ubuntu/.ssh/authorized_keys"
     }
   }
 }
 
 resource "azurerm_dev_test_global_vm_shutdown_schedule" "rg" {
-  virtual_machine_id = azurerm_virtual_machine.http.id
+  for_each = var.array_de_vm
+  virtual_machine_id = azurerm_virtual_machine.http["${each.key}"].id
   location           = azurerm_resource_group.ciber-terraform.location
   enabled            = true
 
